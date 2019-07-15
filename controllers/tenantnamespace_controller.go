@@ -21,6 +21,7 @@ import (
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -79,10 +80,11 @@ func (r *TenantNamespaceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		log.Info(fmt.Sprintf("Namespace %v already present.  Good work team", tns.Name), "namespace", tns.Name)
 		return ctrl.Result{}, nil
 	}
+	labels := map[string]string{"tenant": tns.Spec.Tenant}
 	//create a namespace
 	ns.ObjectMeta = metav1.ObjectMeta{
 		Name:   tns.Name,
-		Labels: map[string]string{"tenant": tns.Spec.Tenant},
+		Labels: labels,
 		// Finalizers: ,
 		// Annotations: map[string]string{"multitenant.k8s.io/created-at",
 	}
@@ -94,12 +96,107 @@ func (r *TenantNamespaceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	}
 	err = r.Create(ctx, &ns)
 
-	return ctrl.Result{}, err
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	/*
+		Network Policies  See docs/NetworkPolicy.md for more information
+	*/
+	// Make Namespace specific items:
+	namespaceSelector := &metav1.LabelSelector{}
+	for k, v := range labels {
+		metav1.AddLabelToSelector(namespaceSelector, k, v)
+	}
+
+	netpol := networkingv1.NetworkPolicy{}
+
+	netpol = networkingv1.NetworkPolicy{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "tenant-network-policy",
+			Namespace: tns.Name,
+		},
+		Spec: networkingv1.NetworkPolicySpec{
+			PodSelector: metav1.LabelSelector{},
+			Ingress: []networkingv1.NetworkPolicyIngressRule{
+				{
+					From: []networkingv1.NetworkPolicyPeer{
+						{
+							PodSelector:       &metav1.LabelSelector{},
+							NamespaceSelector: namespaceSelector,
+						},
+					},
+				},
+			},
+			Egress: []networkingv1.NetworkPolicyEgressRule{
+				{
+					To: []networkingv1.NetworkPolicyPeer{
+						{
+							PodSelector:       &metav1.LabelSelector{},
+							NamespaceSelector: namespaceSelector,
+						},
+					},
+				},
+			},
+			PolicyTypes: []networkingv1.PolicyType{
+				networkingv1.PolicyTypeEgress,
+				networkingv1.PolicyTypeIngress,
+			},
+		},
+	}
+	err = r.Client.Create(ctx, &netpol)
+	if err != nil {
+		log.Error(err, "Could not create network policy in namespace"+tns.Name)
+	}
+
+	// Talk to namespaces with label multitenant.k8s.io=public
+	namespaceSelector = &metav1.LabelSelector{}
+	metav1.AddLabelToSelector(namespaceSelector, "multitenant.k8s.io", "public")
+	netpol = networkingv1.NetworkPolicy{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "multitenant-public",
+			Namespace: tns.Name,
+		},
+		Spec: networkingv1.NetworkPolicySpec{
+			PodSelector: metav1.LabelSelector{},
+			Ingress: []networkingv1.NetworkPolicyIngressRule{
+				{
+					From: []networkingv1.NetworkPolicyPeer{
+						{
+							PodSelector:       &metav1.LabelSelector{},
+							NamespaceSelector: namespaceSelector,
+						},
+					},
+				},
+			},
+			Egress: []networkingv1.NetworkPolicyEgressRule{
+				{
+					To: []networkingv1.NetworkPolicyPeer{
+						{
+							PodSelector:       &metav1.LabelSelector{},
+							NamespaceSelector: namespaceSelector,
+						},
+					},
+				},
+			},
+			PolicyTypes: []networkingv1.PolicyType{
+				networkingv1.PolicyTypeEgress,
+				networkingv1.PolicyTypeIngress,
+			},
+		},
+	}
+	err = r.Client.Create(ctx, &netpol)
+	if err != nil {
+		log.Error(err, "Could not create network policy in namespace"+tns.Name)
+	}
+
+	return ctrl.Result{}, nil
 }
 
 func (r *TenantNamespaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	r.scheme = mgr.GetScheme()
 	corev1.AddToScheme(r.scheme)
+	networkingv1.AddToScheme(r.scheme)
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&tenantv1alpha1.TenantNamespace{}).
 		Complete(r)

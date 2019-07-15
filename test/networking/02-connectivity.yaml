@@ -1,0 +1,51 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: test-api
+  namespace: foo
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 100
+  template:
+    spec:
+      containers:
+      - name: http
+        image: superorbital/bash
+        command: ["http",  "-b", "http://request-log.foo.svc.cluster.local"]
+      restartPolicy: Never
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: test-api
+  namespace: baz
+spec:
+  backoffLimit: 0
+  parallelism: 1
+  completions: 1
+  activeDeadlineSeconds: 100
+  template:
+    spec:
+      containers:
+      - name: http
+        image: superorbital/bash
+        command: ["http",  "-b", "http://request-log.foo.svc.cluster.local"]
+      restartPolicy: Never
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: test-api
+  namespace: bar
+spec:
+  backoffLimit: 0
+  parallelism: 1
+  completions: 1
+  activeDeadlineSeconds: 100
+  template:
+    spec:
+      containers:
+      - name: http
+        image: superorbital/bash
+        command: ["http",  "-b", "http://request-log.foo.svc.cluster.local"]
+      restartPolicy: Never
