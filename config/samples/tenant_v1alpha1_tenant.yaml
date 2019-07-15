@@ -1,0 +1,4 @@
+apiVersion: tenant.multitenant.k8s.io/v1alpha1
+kind: Tenant
+metadata:
+  name: foo

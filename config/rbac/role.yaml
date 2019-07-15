@@ -1,0 +1,68 @@
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - tenant.multitenant.k8s.io
+  resources:
+  - tenants
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - tenant.multitenant.k8s.io
+  resources:
+  - tenants/status
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - tenant.multitenant.k8s.io
+  resources:
+  - tenantnamespaces
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - tenant.multitenant.k8s.io
+  resources:
+  - tenantnamespaces/status
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - tenant.multitenant.k8s.io
+  resources:
+  - tenantrolebindings
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - tenant.multitenant.k8s.io
+  resources:
+  - tenantrolebindings/status
+  verbs:
+  - get
+  - update
+  - patch

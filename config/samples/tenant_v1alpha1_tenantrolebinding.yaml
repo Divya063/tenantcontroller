@@ -1,0 +1,7 @@
+apiVersion: tenant.multitenant.k8s.io/v1alpha1
+kind: TenantRoleBinding
+metadata:
+  name: tenantrolebinding-sample
+spec:
+  # Add fields here
+  foo: bar

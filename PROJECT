@@ -1,0 +1,16 @@
+version: "2"
+domain: multitenant.k8s.io
+repo: github.com/runyontr/tenantcontroller
+resources:
+- group: tenant
+  version: v1alpha1
+  kind: Tenant
+- group: tenant
+  version: v1alpha1
+  kind: TenantNamespace
+- group: tenant
+  version: v1alpha1
+  kind: TenantRoleBinding
+- group: tenant
+  version: v1alpha1
+  kind: TenantTest
