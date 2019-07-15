@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: request-log
+  namespace: foo
+  labels:
+    app: request-log
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: request-log
+  template:
+    metadata:
+      labels:
+        app: request-log
+    spec:
+      containers:
+      - name: request-log
+        image: runyonsolutions/request-log
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: request-log
+  namespace: foo
+spec:
+  type: LoadBalancer
+  selector:
+    app: request-log
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080

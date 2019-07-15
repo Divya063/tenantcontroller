@@ -5,6 +5,7 @@ IMG ?= runyonsolutions/multitenant-controller:$(TAG)
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
+
 all: manager
 
 # Run tests
@@ -63,3 +64,12 @@ CONTROLLER_GEN=$(shell go env GOPATH)/bin/controller-gen
 else
 CONTROLLER_GEN=$(shell which controller-gen)
 endif
+
+
+
+minikube:
+	minikube start --network-plugin=cni --extra-config=kubelet.network-plugin=cni --memory=4096 --kubernetes-version=1.15.0 -p minikube
+	kubectl create -f  minikube/
+	kubectl label ns kube-public multitenant.k8s.io=public
+	kubectl label ns kube-system multitenant.k8s.io=public
+	kubectl apply -f config/crd/bases

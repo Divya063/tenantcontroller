@@ -32,7 +32,7 @@ type TenantNamespaceStatus struct {
 
 // +kubebuilder:object:root=true
 // +genclient:nonNamespaced
-// +kubebuilder:resource:path=tenants,scope=Cluster
+// +kubebuilder:resource:path=tenantnamespaces,scope=Cluster
 // TenantNamespace is the Schema for the tenantnamespaces API
 type TenantNamespace struct {
 	metav1.TypeMeta   `json:",inline"`

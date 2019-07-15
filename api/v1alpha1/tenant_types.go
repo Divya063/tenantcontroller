@@ -35,6 +35,7 @@ type TenantStatus struct {
 // +kubebuilder:object:root=true
 // +genclient:nonNamespaced
 // +kubebuilder:resource:path=tenants,scope=Cluster
+
 // Tenant is the Schema for the tenants API
 type Tenant struct {
 	metav1.TypeMeta   `json:",inline"`
