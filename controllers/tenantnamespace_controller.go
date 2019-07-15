@@ -40,8 +40,11 @@ type TenantNamespaceReconciler struct {
 }
 
 // +kubebuilder:rbac:groups=tenant.multitenant.k8s.io,resources=tenantnamespaces,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=networking.k8s.io,resources=networkpolicies,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=tenant.multitenant.k8s.io,resources=tenantnamespaces/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=*,resources=namespaces,verbs=get;list;watch;create;update;patch;delete
 
+// Reconcile here
 func (r *TenantNamespaceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("tenantnamespace", req.NamespacedName)
